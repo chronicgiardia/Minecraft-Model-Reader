@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Any
 from collections.abc import Iterable
+import copy
 import numpy
 import itertools
 from enum import IntEnum
@@ -347,6 +348,21 @@ class BlockMesh:
                 self.is_transparent,
             )
         return self
+
+    def __deepcopy__(self, memo: dict) -> BlockMesh:
+        """Deep copy that preserves numpy array write-protection."""
+        new = BlockMesh(
+            self._face_mode,
+            {k: copy.deepcopy(v, memo) for k, v in self._verts.items()},
+            {k: copy.deepcopy(v, memo) for k, v in self._texture_coords.items()},
+            {k: copy.deepcopy(v, memo) for k, v in self._tint_verts.items()},
+            {k: copy.deepcopy(v, memo) for k, v in self._faces.items()},
+            {k: copy.deepcopy(v, memo) for k, v in self._texture_index.items()},
+            self._textures,
+            self._transparency,
+        )
+        memo[id(self)] = new
+        return new
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BlockMesh):
